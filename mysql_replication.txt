@@ -8,5 +8,32 @@ i/o线程负责与主服务器进行通信，接收来自主服务器的更新�
 sql线程负责读取中继日志，并执行它所找到的更新
 
 2.主从复制的步骤
+1. 确定分配给每个服务器的ID值，这个ID值必须是唯一的
+主：[mysqld]
+server-id = 1 
+log-bin=binlog_name
+从：[mysqld]
+server-id=2
+log_bin=binlog_name
+重启服务器
+2.主服务器上，创建账户。使从服务器用账号来连接主服务器
+mysql> create user 'master'@'%' identified with mysql_native_password by '你的密码';
+
+mysql> flush privileges;
+
+mysql> grant replication slave on *.* to 'master'@'%' with grant option; 
+
+3.登录主服务器 
+mysql> show master status\G; 查看
+记住file 和 position 这个参数的值  确定二进制日志事件的起始位置
+
+4.在从服务器上复制建立一个副本 
+大白话，在主服务器上MySQLdump 出来一个数据库备份  然后把这个数据库备份导入从服务器上
+5. 连接从服务器
+CHANGE MASTER TO MASTER_HOST='192.168.211.130',MASTER_USER='master', MASTER_PASSWORD='你的密码', MASTER_LOG_FILE='binlog.000006', MASTER_LOG_POS=  156;
+6.让从服务器开始复制
+start slave
 
 3.主从复制的实例
+一主一从
+三主一从
